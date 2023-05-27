@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "gmail-smtp-server",
+  "name": "web-socket-chat-server",
   "builds": [
     {
       "src": "index.js",
