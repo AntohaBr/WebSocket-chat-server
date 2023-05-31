@@ -12,7 +12,8 @@ app.get('/', (req, res) => {
 
 const messages = [
     {
-        message: 'hello Ivan', id: '54q5878',
+        message: 'hello Ivan',
+        id: '54q5878',
         user: {id: '872i317', name: 'Anton'}
     },
     {
@@ -39,17 +40,17 @@ socket.on('connection', (socketChannel) => {
         user.name = name
     });
 
-    socketChannel.on('client-message-sent', (message: string) => {
-        if (typeof message !== 'string') {
+    socketChannel.on('client-name-sent', (name: string) => {
+        if (typeof name !== 'string') {
             return
         }
-        const user = usersState.get(socketChannel)
 
-        let messageItem = {
-            message: message, id: new Date().getTime(),
-            user: {id: user.id, name: user.name}
-        }
-        socketChannel.emit('new-message-sent', messageItem)
+        const user = usersState.get(socketChannel)
+        user.name = name
+    });
+
+    socketChannel.on('client-typed', () => {
+        socketChannel.broadcast.emit('user-typing',usersState.get(socketChannel))
     });
 
     socketChannel.emit('init-messages-published', messages)
@@ -63,3 +64,7 @@ server.listen(PORT, () => {
 });
 
 
+export type UserType = {
+    id: string
+    name: string
+}
