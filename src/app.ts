@@ -40,20 +40,30 @@ socket.on('connection', (socketChannel) => {
         user.name = name
     });
 
-    socketChannel.on('client-name-sent', (name: string) => {
-        if (typeof name !== 'string') {
+    socketChannel.on('client-message-sent', (message: string, successFn) => {
+        if (typeof message !== 'string' || message.length > 150) {
+            successFn('Message length should be less than 150 chars')
             return
         }
 
         const user = usersState.get(socketChannel)
-        user.name = name
+
+        let messageItem = {
+            message: message, id: new Date().getTime().toString(),
+            user: {id: user.id, name: user.name}
+        }
+        messages.push(messageItem)
+        socket.emit('new-message-sent', messageItem)
+        successFn(null)
     });
 
     socketChannel.on('client-typed', () => {
-        socketChannel.broadcast.emit('user-typing',usersState.get(socketChannel))
+        socketChannel.broadcast.emit('user-typing', usersState.get(socketChannel))
     });
 
-    socketChannel.emit('init-messages-published', messages)
+    socketChannel.emit('init-messages-published', messages, () => {
+        console.log('Init messages received')
+    })
     console.log('a user connected');
 });
 
@@ -62,9 +72,3 @@ const PORT = process.env.PORT || 3009
 server.listen(PORT, () => {
     console.log(`listening on *: ${PORT}`);
 });
-
-
-export type UserType = {
-    id: string
-    name: string
-}
